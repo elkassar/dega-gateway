@@ -127,15 +127,13 @@
                 </div>
                 <div class="form-group">
                     <label jhiTranslate="gatewayApp.coreDegaUser.organization" for="field_organization">Organization</label>
-                    <select class="form-control" id="field_organization" multiple name="organization" [(ngModel)]="degaUser.organizations" required>
-                        <option [ngValue]="getSelected(degaUser.organizations, organizationOption)" *ngFor="let organizationOption of organizations; trackBy: trackOrganizationById">{{organizationOption.name}}</option>
-                    </select>
-                </div>
-                <div [hidden]="!(editForm.controls.organization?.dirty && editForm.controls.organization?.invalid)">
-                    <small class="form-text text-danger"
-                        [hidden]="!editForm.controls.organization?.errors?.required" jhiTranslate="entity.validation.required">
-                        This field is required.
-                    </small>
+                    <br>
+                    <jhi-multiple-checkbox id="field_organization"
+                                           [option_list]="all_organization_options"
+                                           [selected_options]="selected_organization_options"
+                                           (updated_selection)="update_organization_selection($event)">
+
+                    </jhi-multiple-checkbox>
                 </div>
                 <div class="form-group">
                     <label class="form-control-label" jhiTranslate="gatewayApp.coreDegaUser.organizationDefault" for="field_organizationDefault">Organization Default</label>
@@ -165,9 +163,13 @@
                 </div>
                 <div class="form-group">
                     <label jhiTranslate="gatewayApp.coreDegaUser.roleMapping" for="field_roleMapping">Role Mapping</label>
-                    <select class="form-control" id="field_roleMapping" multiple name="roleMapping" [(ngModel)]="degaUser.roleMappings" required>
-                        <option [ngValue]="getSelected(degaUser.roleMappings, roleMappingOption)" *ngFor="let roleMappingOption of rolemappings; trackBy: trackRoleMappingById">{{roleMappingOption.name}}</option>
-                    </select>
+                    <br>
+                    <jhi-multiple-checkbox id="field_roleMapping"
+                                           [option_list]="all_role_mapping_options"
+                                           [selected_options]="selected_role_mapping_options"
+                                           (updated_selection)="update_role_mapping_selection($event)">
+
+                    </jhi-multiple-checkbox>
                 </div>
                 <div [hidden]="!(editForm.controls.roleMapping?.dirty && editForm.controls.roleMapping?.invalid)">
                     <small class="form-text text-danger"

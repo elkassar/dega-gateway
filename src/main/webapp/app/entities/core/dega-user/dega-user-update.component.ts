@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import * as moment from 'moment';
@@ -40,6 +40,14 @@ export class DegaUserUpdateComponent implements OnInit {
     tempSlug: string;
     subscription: Subscription;
 
+    backend_compatible_role_mapping_list = [];
+    all_role_mapping_options = [];
+    selected_role_mapping_options = [];
+
+    backend_compatible_organization_list = [];
+    all_organization_options = [];
+    selected_organization_options = [];
+
     constructor(
         private jhiAlertService: JhiAlertService,
         private degaUserService: DegaUserService,
@@ -48,8 +56,7 @@ export class DegaUserUpdateComponent implements OnInit {
         private postService: PostService,
         private roleMappingService: RoleMappingService,
         private activatedRoute: ActivatedRoute,
-        private mediaService: MediaService,
-        private router: Router
+        private mediaService: MediaService
     ) {
         this.subscription = this.mediaService.getProductID().subscribe(message => {
             if (message['type_of_data'] === 'feature') {
@@ -62,6 +69,8 @@ export class DegaUserUpdateComponent implements OnInit {
         this.isSaving = false;
         this.activatedRoute.data.subscribe(({ degaUser }) => {
             this.degaUser = degaUser;
+            this.selected_role_mapping_options = this.processOptionToDesireCheckboxFormat(this.degaUser.roleMappings, 'name');
+            this.selected_organization_options = this.processOptionToDesireCheckboxFormat(this.degaUser.organizations, 'name');
             this.createdDate = this.degaUser.createdDate != null ? this.degaUser.createdDate.format(DATE_TIME_FORMAT) : null;
         });
         this.roleService.query().subscribe(
@@ -73,6 +82,8 @@ export class DegaUserUpdateComponent implements OnInit {
         this.organizationService.query().subscribe(
             (res: HttpResponse<IOrganization[]>) => {
                 this.organizations = res.body;
+                this.backend_compatible_organization_list = res.body;
+                this.all_organization_options = this.processOptionToDesireCheckboxFormat(this.backend_compatible_organization_list, 'name');
             },
             (res: HttpErrorResponse) => this.onError(res.message)
         );
@@ -85,6 +96,8 @@ export class DegaUserUpdateComponent implements OnInit {
         this.roleMappingService.query().subscribe(
             (res: HttpResponse<IRoleMapping[]>) => {
                 this.rolemappings = res.body;
+                this.backend_compatible_role_mapping_list = res.body;
+                this.all_role_mapping_options = this.processOptionToDesireCheckboxFormat(this.backend_compatible_role_mapping_list, 'name');
             },
             (res: HttpErrorResponse) => this.onError(res.message)
         );
@@ -150,5 +163,43 @@ export class DegaUserUpdateComponent implements OnInit {
 
     updateMediaForFeature(url) {
         this.degaUser.profilePicture = url;
+    }
+
+    // Think about optimising this code block, move it to a service, Starts here
+    processOptionToDesireCheckboxFormat(option_list, key_name) {
+        const formatted_option_list = [];
+        for (const option_details of option_list) {
+            const option_format = {};
+            option_format['id'] = option_details['id'];
+            option_format['display_text'] = option_details[key_name];
+            formatted_option_list.push(option_format);
+        }
+        return formatted_option_list;
+    }
+
+    processOrganizationsToBackendRequiredFormat(claim_list) {
+        const formatted_claim_list = [];
+        for (const claim_details of claim_list) {
+            formatted_claim_list.push(this.backend_compatible_organization_list.filter(obj => obj['id'] === claim_details['id'])[0]);
+        }
+        return formatted_claim_list;
+    }
+
+    processRoleMappingToBackendRequiredFormat(tag_list) {
+        const formatted_tag_list = [];
+        for (const tag_details of tag_list) {
+            formatted_tag_list.push(this.backend_compatible_role_mapping_list.filter(obj => obj['id'] === tag_details['id'])[0]);
+        }
+        return formatted_tag_list;
+    }
+
+    // Think about optimising this code block, move it to a service, Ends here
+
+    update_organization_selection(val) {
+        this.degaUser.organizations = this.processOrganizationsToBackendRequiredFormat(val);
+    }
+
+    update_role_mapping_selection(val) {
+        this.degaUser.roleMappings = this.processRoleMappingToBackendRequiredFormat(val);
     }
 }
